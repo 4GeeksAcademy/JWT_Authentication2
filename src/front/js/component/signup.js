@@ -1,36 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button, Container } from "react-bootstrap";
+import { Context } from "../store/appContext";
 
-// Signup Component
 export const Signup = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+    const { store, actions } = useContext(Context);
+    const [email, setemail] = useState("");
+    const [password, setpassword] = useState("");
+    const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      if (response.ok) {
-        const token = await response.json();
-        sessionStorage.setItem('token', token);
-        // Redirect to private page
-        history.push('/private');
-      } else {
-        // Handle error case
-      }
-    } catch (error) {
-      // Handle error case
-    }
-  };
+    const token = sessionStorage.getItem; ("token");
+    console.log(token);
+    const handleClick = async (e) => {
+        e.preventDefault();
+        await actions.createUser(email, password);
+        navigate("/");
+    };
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
-      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
-      <button type="submit">Submit</button>
-    </form>
-  );
+    return (
+        <Container className="container">
+            <div className="signupCont">
+                <form className="signupForm">
+                    <div className="loginFormContent">
+                        <h1 className="sign">Sign Up for Account </h1>
+                        <div className="input-field">
+                            <input className="myInput" type={"text"} placeholder={'Email'} value={email} onChange={(e) => setemail(e.target.value)} />
+                        </div>
+                        <div className="input-field">
+                            <input className="myInput" type={'password'} placeholder={'Password'} value={password} onChange={(e) => setpassword(e.target.value)} />
+                        </div>
+
+                    </div>
+                    <div className="loginFormAction">
+                        <button className="formBtn regBtn" onClick={(e) => handleClick(e)}>Register</button>
+                    </div>
+                </form>
+            </div>
+        </Container >
+    );
 }

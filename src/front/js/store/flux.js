@@ -1,95 +1,82 @@
+import axios from 'axios';
+
 const getState = ({ getStore, setStore }) => {
 	return {
 	  store: {
 		token: null,
-		cf_url: 'https://johncritch90-fictional-broccoli-r9xj7gqw5wrfp6r6-3000.preview.app.github.dev/',
-		cb_url: 'https://johncritch90-fictional-broccoli-r9xj7gqw5wrfp6r6-3001.preview.app.github.dev/',
-		user_name: null,
+		cf_url: 'https://johncritch90-upgraded-computing-machine-j6gxr5v9x6j3p5g4-3000.preview.app.github.dev/',
+		cb_url: 'https://johncritch90-upgraded-computing-machine-j6gxr5v9x6j3p5g4-3001.preview.app.github.dev/',
 	  },
 	  actions: {
-		syncTokenFromSessionStore: () => {
-		  const token = sessionStorage.getItem("token");
-		  if (token && token !== "" && token !== undefined)
-			setStore({ token: token });
+		createUser: async (email, password) => {
+			const cb_url = getStore().cb_url;
+			const cf_url = getStore().cf_url;
+			const url = cb_url + "/api/signup";
+			const data = {
+				email: email,
+				password: password,
+			};
+			try {
+				const response = await axios.post(url, data)
+
+				if (response.status !== 200) {
+					alert("There has been an error");
+					return false;
+				}
+
+				const responseData = response.data;
+
+				if (responseData.status === "true") {
+					window.location.href = cf_url + "/home"
+				}
+
+				return true;
+			} catch (error) {
+				console.error(error);
+			}
 		},
-  
-		loadData: () => {
-		},
-  
-		logout: () => {
-		  const cf_url = getStore().cf_url;
-		  sessionStorage.removeItem("token");
-		  setStore({ token: null });
-		  window.location.href = cf_url + "/";
-		},
-  
+
 		login: async (email, password) => {
-		  const cb_url = getStore().cb_url;
-		  const opts = {
-			method: "POST",
-			mode: "cors",
-			headers: {
-			  "Content-Type": "application/json",
-			  "Access-Control-Allow-Origin": "*",
-			},
-			body: JSON.stringify({
-			  email: email,
-			  password: password,
-			}),
-		  };
-		  try {
-			const res = await fetch(cb_url + "/api/login", opts);
-			if (res.status !== 200) {
-			  alert("There has been an error");
-			  return false;
+			const cb_url = getStore().cb_url;
+			const url = cb_url + "/api/login";
+			const data = {
+				email: email,
+				password: password,
+			};
+
+			try {
+				const response = await axios.post(url, data, {
+					headers: {
+						"Content-Type": "application/json"
+					},
+				});
+
+				if (response.status !== 200) {
+					alert("There has been an error");
+					return false;
+				}
+
+				const responseData = response.data;
+				sessionStorage.setItem("token", responseData.access_token);
+
+				setStore({ token: responseData.access_token, favorites: responseData.favorites, user_name: responseData.user_name });
+				return true;
+			} catch (error) {
+				console.error(error);
 			}
-			const data = await res.json();
-			data.favorites.forEach((f) => {
-			  f.item = f.item.replace(/'/g, '"');
-			  f.item = JSON.parse(f.item);
-			});
-			setStore({
-			  token: data.access_token,
-			  user_name: data.user_name,
-			});
-			sessionStorage.setItem("token", data.access_token);
-			return true;
-		  } catch (error) {
-			console.error(error);
-		  }
+		},
+		logout: async (email, password) => {
+			const cf_url = getStore.cf_url
+			const token = sessionStorage.removeItem("token");
+			setStore({ token: null });
+			window.location.href = "/";
 		},
   
-		createUser: async (name, email, password) => {
-		  const cb_url = getStore().cb_url;
-		  const cf_url = getStore().cf_url;
-		  const opts = {
-			method: "POST",
-			mode: "cors",
-			headers: {
-			  "Content-Type": "application/json",
-			  "Access-Control-Allow-Origin": "*",
-			},
-			body: JSON.stringify({
-			  name: name,
-			  email: email,
-			  password: password,
-			}),
-		  };
-		  try {
-			const res = await fetch(cb_url + "/api/createUser", opts);
-			if (res.status !== 200) {
-			  alert("There has been an error");
-			  return false;
-			}
-			const data = await res.json();
-			if (data.status === "true") {
-			  window.location.href = cf_url + "/login";
-			}
-			return true;
-		  } catch (error) {
-			console.error(error);
-		  }
-		},
+		getMessage: () => {
+		  // Implementation of getMessage function
+		  // You can replace this with your actual implementation
+		  console.log('getMessage function called');
+		}
 	  },
 	};
   };

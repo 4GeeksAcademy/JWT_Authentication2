@@ -1,12 +1,10 @@
-"""
-This module takes care of starting the API Server, Loading the DB and Adding the endpoints
-"""
-from flask import Flask, request, jsonify, url_for, Blueprint
+from flask import Flask, request, jsonify, Blueprint
 from api.models import db, User
-from api.utils import generate_sitemap, APIException
+import secrets
+
+app = Flask(__name__)
 
 api = Blueprint('api', __name__)
-
 
 @api.route('/hello', methods=['POST', 'GET'])
 def handle_hello():
@@ -15,61 +13,66 @@ def handle_hello():
     }
     return jsonify(response_body), 200
 
-
 @api.route('/signup', methods=['POST'])
-def handle_signup():
-    # Get email and password from request body
-    email = request.json.get('email')
-    password = request.json.get('password')
-
-    # Check if user with the provided email already exists
-    if User.query.filter_by(email=email).first():
-        raise APIException('User already exists', status_code=400)
-
-    # Create a new user
-    new_user = User(email=email, password=password)
-    db.session.add(new_user)
-    db.session.commit()
-
-    # Return success message
-    response_body = {
-        'message': 'User created successfully'
-    }
-    return jsonify(response_body), 201
-
-
-@api.route('/login', methods=['POST'])
-def handle_login():
-    # Get email and password from request body
-    email = request.json.get('email')
-    password = request.json.get('password')
-
-    # Find user by email
+def signup():
+    rb = request.get_json()
+    email = rb["email"]
+    password = rb["password"]
     user = User.query.filter_by(email=email).first()
 
-    # Check if user exists and the password is correct
-    if not user or not user.check_password(password):
-        raise APIException('Invalid email or password', status_code=401)
+    if user:
+        return jsonify(message='Email already registered'), 200
 
-    # Generate token or session for the logged-in user
-    token = generate_token()  # Replace with your token generation logic
+    new_user = User(email=rb["email"], password=rb["password"], is_active=True)
 
-    # Return the token as the response
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify(message='User registered successfully'), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(message='Failed to register user'), 500
+
+@api.route('/login', methods=['POST'])
+def login():
+    email = request.json.get('email')
+    password = request.json.get('password')
+    
+    # Your login logic here
+    
+    # Generate a random access token
+    access_token = secrets.token_hex(16)
+    
     response_body = {
-        'token': token
+        'message': 'Logged in successfully',
+        'access_token': access_token
     }
     return jsonify(response_body), 200
 
+users = [
+    {'email': 'test1@example.com', 'password': 'password1'},
+    {'email': 'test2@example.com', 'password': 'password2'},
+]
 
-@api.route('/private', methods=['GET'])
-def handle_private():
-    # Get token from request headers or query parameters
-    token = request.headers.get('Authorization')  # Example: Bearer <token>
+@api.route('/token', methods=['POST'])
+def generate_token():
+    # Get email and password from request body
+    email = request.json.get('email')
+    password = request.json.get('password')
 
-    # Check if token exists and is valid (add your token validation logic here)
+    # Validate email and password
+    user = next((user for user in users if user['email'] == email), None)
+    if user and user['password'] == password:
+        # Generate a random access token
+        access_token = secrets.token_hex(16)
 
-    # Return private data
-    response_body = {
-        'message': 'Private data'
-    }
-    return jsonify(response_body), 200
+        response_body = {
+            'access_token': access_token
+        }
+        return jsonify(response_body), 200
+# Register the API blueprint
+app.register_blueprint(api, url_prefix='/api')
+
+# Run the Flask app
+if __name__ == '__main__':
+    app.run()
