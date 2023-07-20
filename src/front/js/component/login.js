@@ -16,21 +16,25 @@ export const Login = () => {
     setIsLoading(true);
     setError("");
     setLoginSuccess(false); // Reset the success message
-
+  
     try {
-      await actions.login(email, password);
-      if (store.token) {
+      const response = await actions.login(email, password);
+      console.log("Login Response:", response);
+  
+      if (response.status === "success" || response.success === true) {
         setLoginSuccess(true); // Show success message
-        navigate("/private");
+        navigate("/private"); // Navigate to the private page on successful login
       } else {
-        setError("Failed Login. Try Again."); // Show error message
+        setError("Login Success"); // Show error message
       }
     } catch (error) {
+      console.error("Login Error:", error);
       setError("An error occurred. Please try again later.");
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="loginCont">
