@@ -1,10 +1,11 @@
 from flask import Flask, request, jsonify, Blueprint
 from api.models import db, User
-import secrets
+from flask_jwt_extended import create_access_token
 
 app = Flask(__name__)
 
 api = Blueprint('api', __name__)
+
 
 @api.route('/hello', methods=['POST', 'GET'])
 def handle_hello():
@@ -35,44 +36,24 @@ def signup():
 
 @api.route('/login', methods=['POST'])
 def login():
-    email = request.json.get('email')
-    password = request.json.get('password')
-    
-    # Your login logic here
-    
-    # Generate a random access token
-    access_token = secrets.token_hex(16)
-    
-    response_body = {
-        'message': 'Logged in successfully',
-        'access_token': access_token
-    }
-    return jsonify(response_body), 200
+    get_login = request.get_json()
+    email = get_login["email"]
+    password = get_login["password"]
 
-users = [
-    {'email': 'test1@example.com', 'password': 'password1'},
-    {'email': 'test2@example.com', 'password': 'password2'},
-]
+    if not email or not password:
+        return jsonify({'message': 'Email and password are required'}), 400
 
-@api.route('/token', methods=['POST'])
-def generate_token():
-    # Get email and password from request body
-    email = request.json.get('email')
-    password = request.json.get('password')
+    user = User.query.filter_by(email=email).first()
 
-    # Validate email and password
-    user = next((user for user in users if user['email'] == email), None)
-    if user and user['password'] == password:
-        # Generate a random access token
-        access_token = secrets.token_hex(16)
+    if not user or user.password != password:
+        return jsonify({'message': 'Invalid credentials'}), 401
 
-        response_body = {
-            'access_token': access_token
-        }
-        return jsonify(response_body), 200
-# Register the API blueprint
+    # create token
+    access_token = create_access_token(identity= user.id)
+    return jsonify({'message': 'Logged in successfully.', 'access_token':access_token}), 200
+
+
 app.register_blueprint(api, url_prefix='/api')
 
-# Run the Flask app
 if __name__ == '__main__':
     app.run()

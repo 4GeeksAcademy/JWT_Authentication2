@@ -7,11 +7,12 @@ const getState = ({ getStore, setStore }) => {
 		cf_url: 'https://johncritch90-upgraded-computing-machine-j6gxr5v9x6j3p5g4-3000.preview.app.github.dev/',
 		cb_url: 'https://johncritch90-upgraded-computing-machine-j6gxr5v9x6j3p5g4-3001.preview.app.github.dev/',
 	  },
+	  
 	  actions: {
 		createUser: async (email, password) => {
 			const cb_url = getStore().cb_url;
 			const cf_url = getStore().cf_url;
-			const url = cb_url + "/api/signup";
+			const url = cb_url + "api/signup";
 			const data = {
 				email: email,
 				password: password,
@@ -27,7 +28,7 @@ const getState = ({ getStore, setStore }) => {
 				const responseData = response.data;
 
 				if (responseData.status === "true") {
-					window.location.href = cf_url + "/home"
+					window.location.href = cf_url + "home"
 				}
 
 				return true;
@@ -38,7 +39,7 @@ const getState = ({ getStore, setStore }) => {
 
 		login: async (email, password) => {
 			const cb_url = getStore().cb_url;
-			const url = cb_url + "/api/login";
+			const url = cb_url + "api/login";
 			const data = {
 				email: email,
 				password: password,
@@ -69,14 +70,8 @@ const getState = ({ getStore, setStore }) => {
 			const cf_url = getStore.cf_url
 			const token = sessionStorage.removeItem("token");
 			setStore({ token: null });
-			window.location.href = "/";
+			window.location.href = "login";
 		},
-  
-		getMessage: () => {
-		  // Implementation of getMessage function
-		  // You can replace this with your actual implementation
-		  console.log('getMessage function called');
-		}
 	  },
 	};
   };

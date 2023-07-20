@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Container } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 import { Context } from "../store/appContext";
 
 export const Signup = () => {
@@ -14,7 +14,7 @@ export const Signup = () => {
     const handleClick = async (e) => {
         e.preventDefault();
         await actions.createUser(email, password);
-        navigate("/");
+        navigate("/login");
     };
 
     return (
